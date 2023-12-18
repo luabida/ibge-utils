@@ -1,0 +1,8 @@
+name: ibge-utils
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python >= 3.11,<3.13
+  - pip
+  - poetry >= 1.7.1

@@ -1,0 +1,48 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+    
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - uses: actions/checkout@v3
+   
+    - name: Semantic Release PR Title Check
+      uses: osl-incubator/semantic-release-pr-title-check@v1.4.2
+      with:                                   
+        convention-name: conventionalcommits 
+
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        miniconda-version: "latest"
+        mamba-version: "*"
+        environment-file: conda/dev.yaml
+        channels: conda-forge,nodefaults
+        activate-environment: ibge-utils
+        use-mamba: true
+        miniforge-variant: Mambaforge
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Lint
+      run: |
+        pre-commit run --all-files
+
+    - name: Run tests
+      run: |
+        pytest -s ibge/tests/
