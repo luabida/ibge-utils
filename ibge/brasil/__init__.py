@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, ForwardRef
+from typing import Union, Optional, List, ForwardRef, Self
 from pathlib import Path
 
 import duckdb
@@ -12,9 +12,9 @@ IBGE_DB = str(
 class Macrorregiao:
     geocodigo: int
     nome: str
-    estados: List[ForwardRef('Estado')]
+    __states__: List[ForwardRef('Estado')]
 
-    _macrorregioes = {
+    _macroregions = {
         1: "Norte",
         2: "Nordeste",
         3: "Centro-Oeste",
@@ -29,7 +29,7 @@ class Macrorregiao:
     ):
         if nome and geocodigo:
             raise ValueError(
-                "Utilize `nome` ou `geocodigo` para instanciar Macrorregiões"
+                "Utilize `nome` ou `geocodigo` para instanciar Macrorregião"
             )
 
         if geocodigo:
@@ -42,35 +42,40 @@ class Macrorregiao:
                     "respectivamente)"
                 )
 
-            self.nome = self._macrorregioes[self.geocodigo]
+            self.nome = self._macroregions[self.geocodigo]
 
         if nome:
-            rev_macrorregioes = {v: k for k, v in self._macrorregioes.items()}
+            rev_macroregions = {v: k for k, v in self._macroregions.items()}
             self.nome = nome.capitalize()
 
-            if self.nome not in self._macrorregioes.values():
+            if self.nome not in self._macroregions.values():
                 raise ValueError(
                     "Macrorregião não encontrada. Opções: Norte, Nordeste, "
                     "Centro-Oeste, Sudeste ou Sul"
                 )
 
-            self.geocodigo = rev_macrorregioes[self.nome]
-
-        try:
-            db = duckdb.connect(IBGE_DB)
-            states_df = db.sql(
-                f"SELECT * FROM states WHERE macroregion = {self.geocodigo}"
-            ).fetchdf()
-        finally:
-            db.close()
-
-        self.estados = get_estados(list(states_df["id"]))
+            self.geocodigo = rev_macroregions[self.nome]
 
     def __str__(self) -> str:
         return self.nome
 
     def __repr__(self) -> str:
         return self.nome
+
+    def __hash__(self) -> int:
+        return self.geocodigo
+
+    def __eq__(self, other: Self) -> bool:
+        return self.geocodigo == other.geocodigo
+
+    @property
+    def estados(self) -> List[ForwardRef('Estado')]:
+        if not self.__states__:
+            self.load_states()
+        return self.__states__
+
+    def load_states(self) -> None:
+        self.__states__ = get_states_from_macroregion(self.geocodigo)
 
 
 class Estado:
@@ -117,9 +122,6 @@ class Estado:
         self.macrorregiao = (  # Macrorregiao( #TODO
             state_df["macroregion"].to_list()[0]
         )
-        self.mesorregioes = get_mesoregions(state_df=self.geocodigo)
-        self.microrregioes = get_microregions(state_df=self.geocodigo)
-        self.municipios = get_cities(state_df=self.geocodigo)
 
     def __str__(self) -> str:
         return self.nome
@@ -174,11 +176,16 @@ class Municipio:
             )
 
 
-def get_estados(geocodes: List[int]) -> List[Estado]:
-    estados = []
-    for geocode in geocodes:
-        estados.append(Estado(geocodigo=geocode))
-    return estados
+def get_states_from_macroregion(macroregion: int) -> List[Estado]:
+    try:
+        db = duckdb.connect(IBGE_DB)
+        states_df = db.sql(
+            f"SELECT * FROM states WHERE macroregion = {macroregion}"
+        ).fetchdf()
+    finally:
+        db.close()
+
+    return [Estado(geocodigo=id) for id in list(states_df["id"])]
 
 
 def get_mesoregions(state: int):
