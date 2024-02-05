@@ -387,13 +387,3 @@ def get_microregions_from_mesoregion(
         Microrregiao(nome=name, mesorregiao=mesoregion.nome)
         for name in list(microregions_df["name"])
     ]
-
-
-def get_mesoregions(state: int):
-    try:
-        db = duckdb.connect(IBGE_DB)
-        mesoregion_df = db.sql(
-            f"SELECT * FROM mesoregions WHERE state = {state}"
-        ).fetchdf()
-    finally:
-        db.close()
