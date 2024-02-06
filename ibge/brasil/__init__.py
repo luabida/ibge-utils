@@ -262,26 +262,39 @@ class Microrregiao:
     mesorregiao: Mesorregiao
     municipios: List[ForwardRef('Municipio')]
 
-    def __init__(self, nome: str, mesorregiao: Optional[str] = None):
+    def __init__(
+        self,
+        nome: Optional[str] = None,
+        mesorregiao: Optional[str] = None,
+        _id: Optional[int] = None
+    ):
         try:
             db = duckdb.connect(IBGE_DB)
-            if "'" in nome:
-                nome = nome.replace("'", r"''")
 
-            if mesorregiao:
+            if nome:
+                if "'" in nome:
+                    nome = nome.replace("'", r"''")
+
+                if mesorregiao:
+                    microregion_df = db.sql(
+                        "SELECT * FROM microregions WHERE LOWER(name) = '"
+                        f"{nome.lower()}"
+                        f"' AND LOWER(mesoregion) = '{mesorregiao.lower()}'"
+                    ).fetchdf()
+                else:
+                    microregion_df = db.sql(
+                        "SELECT * FROM microregions WHERE LOWER(name) = "
+                        f"'{nome.lower()}'"
+                    ).fetchdf()
+
+                if "''" in nome:
+                    nome = nome.replace("''", "'")
+
+            if _id:
                 microregion_df = db.sql(
-                    "SELECT * FROM microregions WHERE LOWER(name) = '"
-                    f"{nome.lower()}"
-                    f"' AND LOWER(mesoregion) = '{mesorregiao.lower()}'"
-                ).fetchdf()
-            else:
-                microregion_df = db.sql(
-                    "SELECT * FROM microregions WHERE LOWER(name) = "
-                    f"'{nome.lower()}'"
+                    f"SELECT * FROM microregions WHERE id = {_id}"
                 ).fetchdf()
 
-            if "''" in nome:
-                nome = nome.replace("''", "'")
         finally:
             db.close()
 
@@ -298,7 +311,12 @@ por favor passe uma das opções: {list(microregion_df['mesoregion'])}.
 Exemplo: Microrregiao(nome='{nome}', mesorregiao='{list(microregion_df['mesoregion'])[0]}')
             """)
 
-        self.nome = nome
+        if nome:
+            self.nome = nome
+
+        if _id:
+            self.nome = microregion_df['name'][0]
+
         self.id_geografico = microregion_df["geographic_id"][0]
         self.mesorregiao = Mesorregiao(microregion_df["mesoregion"][0])
         self.estado = self.mesorregiao.estado
@@ -334,6 +352,42 @@ class Municipio:
     def __init__(self, geocodigo: Union[int, str]):
         self._check_geocode(str(geocodigo))
         self.geocodigo = int(geocodigo)
+
+        try:
+            db = duckdb.connect(IBGE_DB)
+            city_df = db.sql(
+                f"SELECT * FROM cities WHERE id = {geocodigo}"
+            ).fetchdf()
+        finally:
+            db.close()
+
+        if city_df.empty:
+            raise ValueError(
+                "Município não encontrado. Exemplo: `Municipio(3304557)`"
+            )
+
+        self.nome = city_df["name"][0]
+        self.latitude = city_df["latitude"][0]
+        self.longitude = city_df["longitude"][0]
+        self.fuso_horario = city_df["timezone"][0]
+        self.microrregiao = Microrregiao(_id=int(city_df["microregion"][0]))
+        self.mesorregiao = self.microrregiao.mesorregiao
+        self.estado = self.mesorregiao.estado
+        self.macrorregiao = self.estado.macrorregiao
+
+    def __str__(self) -> str:
+        return self.nome
+
+    def __repr__(self) -> str:
+        return self.nome
+
+    def __hash__(self) -> int:
+        return self.geocodigo
+
+    def __eq__(self, other: Self) -> bool:
+        if not isinstance(other, Municipio):
+            return ValueError("Not a Municipio")
+        return self.geocodigo == other.geocodigo
 
     def _check_geocode(self, geocodigo: str) -> None:
         if not geocodigo.isdigit():
