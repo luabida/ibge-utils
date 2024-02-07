@@ -30,6 +30,10 @@ jobs:
         fetch-depth: 0
         submodules: recursive
 
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20.11.0
+
     - uses: conda-incubator/setup-miniconda@v2
       with:
         miniconda-version: "latest"
@@ -40,10 +44,6 @@ jobs:
         use-mamba: true
         miniforge-variant: Mambaforge
     
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 18
-
     - name: Release
       run: |
         poetry config pypi-token.pypi ${PYPI_TOKEN}
@@ -55,5 +55,5 @@ jobs:
           -p "@semantic-release/exec" \
           -p "@semantic-release/github" \
           -p "@semantic-release/git" \
-          -p "@google/semantic-release-replace-plugin" \
+          -p "semantic-release-replace-plugin" \
           semantic-release --ci

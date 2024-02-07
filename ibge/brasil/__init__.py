@@ -4,31 +4,27 @@ from pathlib import Path
 import duckdb
 
 
-IBGE_DB = str(
-    (Path(__file__).parent.parent / "data" / "ibge.duckdb").absolute()
-)
+IBGE_DB = str((Path(__file__).parent.parent / "data" / "ibge.duckdb").absolute())
 
 
 class Macrorregiao:
     geocodigo: int
     nome: str
-    __states__: List[ForwardRef('Estado')]
-    __mesoregions__: List[ForwardRef('Mesorregiao')]
-    __microregions__: List[ForwardRef('Microrregiao')]
-    __cities__: List[ForwardRef('Municipio')]
+    __states__: List[ForwardRef("Estado")]
+    __mesoregions__: List[ForwardRef("Mesorregiao")]
+    __microregions__: List[ForwardRef("Microrregiao")]
+    __cities__: List[ForwardRef("Municipio")]
 
     _macroregions = {
         1: "Norte",
         2: "Nordeste",
         3: "Centro-Oeste",
         4: "Sudeste",
-        5: "Sul"
+        5: "Sul",
     }
 
     def __init__(
-        self,
-        nome: Optional[str] = None,
-        geocodigo: Optional[Union[int, str]] = None
+        self, nome: Optional[str] = None, geocodigo: Optional[Union[int, str]] = None
     ):
         if nome and geocodigo:
             raise ValueError(
@@ -79,13 +75,13 @@ class Macrorregiao:
         return self.geocodigo == other.geocodigo
 
     @property
-    def estados(self) -> List[ForwardRef('Estado')]:
+    def estados(self) -> List[ForwardRef("Estado")]:
         if not self.__states__:
             self._load_states()
         return self.__states__
 
     @property
-    def mesorregioes(self) -> List[ForwardRef('Mesorregiao')]:
+    def mesorregioes(self) -> List[ForwardRef("Mesorregiao")]:
         if not self.__states__:
             self._load_states()
 
@@ -95,7 +91,7 @@ class Macrorregiao:
         return self.__mesoregions__
 
     @property
-    def microrregioes(self) -> List[ForwardRef('Microrregiao')]:
+    def microrregioes(self) -> List[ForwardRef("Microrregiao")]:
         if not self.__states__:
             self._load_states()
 
@@ -105,7 +101,7 @@ class Macrorregiao:
         return self.__microregions__
 
     @property
-    def municipios(self) -> List[ForwardRef('Municipio')]:
+    def municipios(self) -> List[ForwardRef("Municipio")]:
         if not self.__states__:
             self._load_states()
 
@@ -123,9 +119,9 @@ class Estado:
     nome: str
     uf: str
     macrorregiao: Macrorregiao
-    __mesoregions__: List[ForwardRef('Mesorregiao')]
-    __microregions__: List[ForwardRef('Microrregiao')]
-    __cities__: List[ForwardRef('Municipio')]
+    __mesoregions__: List[ForwardRef("Mesorregiao")]
+    __microregions__: List[ForwardRef("Microrregiao")]
+    __cities__: List[ForwardRef("Municipio")]
 
     def __init__(
         self,
@@ -133,9 +129,7 @@ class Estado:
         uf: Optional[str] = None,
     ):
         if uf and geocodigo:
-            raise ValueError(
-                "Utilize `UF` ou `geocodigo` para instanciar Estados"
-            )
+            raise ValueError("Utilize `UF` ou `geocodigo` para instanciar Estados")
 
         try:
             db = duckdb.connect(IBGE_DB)
@@ -159,9 +153,7 @@ class Estado:
         self.geocodigo = state_df["id"].to_list()[0]
         self.nome = state_df["name"].to_list()[0]
         self.uf = state_df["uf"].to_list()[0]
-        self.macrorregiao = (
-            Macrorregiao(geocodigo=state_df["macroregion"].to_list()[0])
-        )
+        self.macrorregiao = Macrorregiao(geocodigo=state_df["macroregion"].to_list()[0])
         self.__mesoregions__ = []
         self.__microregions__ = []
         self.__cities__ = []
@@ -181,13 +173,13 @@ class Estado:
         return self.geocodigo == other.geocodigo
 
     @property
-    def mesorregioes(self) -> List[ForwardRef('Mesorregiao')]:
+    def mesorregioes(self) -> List[ForwardRef("Mesorregiao")]:
         if not self.__mesoregions__:
             self._load_mesoregions()
         return self.__mesoregions__
 
     @property
-    def microrregioes(self) -> List[ForwardRef('Microrregiao')]:
+    def microrregioes(self) -> List[ForwardRef("Microrregiao")]:
         if not self.__mesoregions__:
             self._load_mesoregions()
 
@@ -200,7 +192,7 @@ class Estado:
         return self.__microregions__
 
     @property
-    def municipios(self) -> List[ForwardRef('Municipio')]:
+    def municipios(self) -> List[ForwardRef("Municipio")]:
         if not self.__mesoregions__:
             self._load_mesoregions()
 
@@ -221,8 +213,8 @@ class Mesorregiao:
     id_geografico: int
     macrorregiao: Macrorregiao
     estado: Estado
-    __microregions__: List[ForwardRef('Microrregiao')]
-    __cities__: List[ForwardRef('Municipio')]
+    __microregions__: List[ForwardRef("Microrregiao")]
+    __cities__: List[ForwardRef("Municipio")]
 
     def __init__(self, nome: str):
         try:
@@ -261,13 +253,13 @@ class Mesorregiao:
         return self.nome == other.nome
 
     @property
-    def microrregioes(self) -> List[ForwardRef('Microrregiao')]:
+    def microrregioes(self) -> List[ForwardRef("Microrregiao")]:
         if not self.__microregions__:
             self._load_microregions()
         return self.__microregions__
 
     @property
-    def municipios(self) -> List[ForwardRef('Municipio')]:
+    def municipios(self) -> List[ForwardRef("Municipio")]:
         if not self.__microregions__:
             self._load_microregions()
 
@@ -290,13 +282,13 @@ class Microrregiao:
     macrorregiao: Macrorregiao
     estado: Estado
     mesorregiao: Mesorregiao
-    municipios: List[ForwardRef('Municipio')]
+    municipios: List[ForwardRef("Municipio")]
 
     def __init__(
         self,
         nome: Optional[str] = None,
         mesorregiao: Optional[str] = None,
-        __id__: Optional[int] = None
+        __id__: Optional[int] = None,
     ):
         try:
             db = duckdb.connect(IBGE_DB)
@@ -336,19 +328,21 @@ class Microrregiao:
             )
 
         if len(microregion_df) > 1:
-            raise ValueError(f"""
+            raise ValueError(
+                f"""
 A Microrregião {nome} é encontrada em diferentes Mesorregiões, 
 por favor passe uma das opções: {list(microregion_df['mesoregion'])}.
 Exemplo: Microrregiao(nome='{nome}', mesorregiao='{list(microregion_df['mesoregion'])[0]}')
-            """)
+            """
+            )
 
         if nome:
-            self.__id__ = microregion_df['id'][0]
+            self.__id__ = microregion_df["id"][0]
             self.nome = nome
 
         if __id__ is not None:
             self.__id__ = __id__
-            self.nome = microregion_df['name'][0]
+            self.nome = microregion_df["name"][0]
 
         self.id_geografico = microregion_df["geographic_id"][0]
         self.mesorregiao = Mesorregiao(microregion_df["mesoregion"][0])
@@ -371,7 +365,7 @@ Exemplo: Microrregiao(nome='{nome}', mesorregiao='{list(microregion_df['mesoregi
         return self.nome == other.nome
 
     @property
-    def municipios(self) -> List[ForwardRef('Municipio')]:
+    def municipios(self) -> List[ForwardRef("Municipio")]:
         if not self.__cities__:
             self._load_cities()
         return self.__cities__
@@ -390,22 +384,17 @@ class Municipio:
     info: dict
 
     def __init__(self, geocodigo: Union[int, str]):
-        print(geocodigo)
         self._check_geocode(str(geocodigo))
         self.geocodigo = int(geocodigo)
 
         try:
             db = duckdb.connect(IBGE_DB)
-            city_df = db.sql(
-                f"SELECT * FROM cities WHERE id = {geocodigo}"
-            ).fetchdf()
+            city_df = db.sql(f"SELECT * FROM cities WHERE id = {geocodigo}").fetchdf()
         finally:
             db.close()
 
         if city_df.empty:
-            raise ValueError(
-                "Município não encontrado. Exemplo: `Municipio(3304557)`"
-            )
+            raise ValueError("Município não encontrado. Exemplo: `Municipio(3304557)`")
 
         self.nome = city_df["name"][0]
         self.microrregiao = Microrregiao(__id__=int(city_df["microregion"][0]))
@@ -434,9 +423,7 @@ class Municipio:
 
     def _check_geocode(self, geocodigo: str) -> None:
         if not geocodigo.isdigit():
-            raise ValueError(
-                "O Geocódigo do Município deve conter apenas dígitos"
-            )
+            raise ValueError("O Geocódigo do Município deve conter apenas dígitos")
 
         if len(geocodigo) != 7:
             raise ValueError(
@@ -457,9 +444,7 @@ def get_states_from_macroregion(macroregion: Macrorregiao) -> List[Estado]:
     return [Estado(geocodigo=id) for id in list(states_df["id"])]
 
 
-def get_mesoregions_from_macroregion(
-    macroregion: Macrorregiao
-) -> List[Municipio]:
+def get_mesoregions_from_macroregion(macroregion: Macrorregiao) -> List[Municipio]:
     try:
         db = duckdb.connect(IBGE_DB)
         mesoregions_df = db.sql(
@@ -475,9 +460,7 @@ def get_mesoregions_from_macroregion(
     return [Mesorregiao(nome=name) for name in list(mesoregions_df["name"])]
 
 
-def get_microregion_from_macroregion(
-    macroregion: Macrorregiao
-) -> List[Municipio]:
+def get_microregion_from_macroregion(macroregion: Macrorregiao) -> List[Municipio]:
     try:
         db = duckdb.connect(IBGE_DB)
         microregions_df = db.sql(
@@ -495,12 +478,12 @@ def get_microregion_from_macroregion(
 
 
 def get_cities_from_macroregion(
-    macroregion: Macrorregiao
+    macroregion: Macrorregiao, raw: bool = False
 ) -> List[Municipio]:
     try:
         db = duckdb.connect(IBGE_DB)
         cities_df = db.sql(
-            "SELECT cities.id AS id "
+            "SELECT cities.id AS geocodigo "
             "FROM cities "
             "JOIN microregions ON cities.microregion = microregions.id "
             "JOIN mesoregions ON microregions.mesoregion = mesoregions.name "
@@ -511,7 +494,10 @@ def get_cities_from_macroregion(
     finally:
         db.close()
 
-    return [Municipio(geocode) for geocode in list(cities_df["id"])]
+    if raw:
+        return list(cities_df["geocodigo"])
+
+    return [Municipio(geocode) for geocode in list(cities_df["geocodigo"])]
 
 
 def get_mesoregions_from_state(state: Estado) -> List[Mesorregiao]:
@@ -526,9 +512,7 @@ def get_mesoregions_from_state(state: Estado) -> List[Mesorregiao]:
     return [Mesorregiao(nome=name) for name in list(mesoregions_df["name"])]
 
 
-def get_microregions_from_mesoregion(
-    mesoregion: Mesorregiao
-) -> List[Microrregiao]:
+def get_microregions_from_mesoregion(mesoregion: Mesorregiao) -> List[Microrregiao]:
     try:
         db = duckdb.connect(IBGE_DB)
         microregions_df = db.sql(
@@ -543,9 +527,7 @@ def get_microregions_from_mesoregion(
     ]
 
 
-def get_cities_from_microregion(
-    microregion: Microrregiao
-) -> List[Municipio]:
+def get_cities_from_microregion(microregion: Microrregiao) -> List[Municipio]:
     try:
         db = duckdb.connect(IBGE_DB)
         cities_df = db.sql(
