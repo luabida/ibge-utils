@@ -91,30 +91,22 @@ class TestIBGEDB(unittest.TestCase):
         self.assertEqual(columns, expected_columns)
 
     def test_macroregions_amount(self):
-        macroregions_count = self.db.sql(
-            "SELECT COUNT(*) FROM macroregions"
-        ).fetchone()
+        macroregions_count = self.db.sql("SELECT COUNT(*) FROM macroregions").fetchone()
         expected_count = 5
         self.assertEqual(macroregions_count[0], expected_count)
 
     def test_states_amount(self):
-        states_count = self.db.sql(
-            "SELECT COUNT(*) FROM states"
-        ).fetchone()
+        states_count = self.db.sql("SELECT COUNT(*) FROM states").fetchone()
         expected_count = 27
         self.assertEqual(states_count[0], expected_count)
 
     def test_mesoregions_amount(self):
-        mesoregions_count = self.db.sql(
-            "SELECT COUNT(*) FROM mesoregions"
-        ).fetchone()
+        mesoregions_count = self.db.sql("SELECT COUNT(*) FROM mesoregions").fetchone()
         expected_count = 137
         self.assertEqual(mesoregions_count[0], expected_count)
 
     def test_microregions_amount(self):
-        microregions_count = self.db.sql(
-            "SELECT COUNT(*) FROM microregions"
-        ).fetchone()
+        microregions_count = self.db.sql("SELECT COUNT(*) FROM microregions").fetchone()
         expected_count = 558
         self.assertEqual(microregions_count[0], expected_count)
 
