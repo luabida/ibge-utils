@@ -390,7 +390,6 @@ class Municipio:
     info: dict
 
     def __init__(self, geocodigo: Union[int, str]):
-        print(geocodigo)
         self._check_geocode(str(geocodigo))
         self.geocodigo = int(geocodigo)
 
@@ -495,12 +494,12 @@ def get_microregion_from_macroregion(
 
 
 def get_cities_from_macroregion(
-    macroregion: Macrorregiao
+    macroregion: Macrorregiao, raw: bool = False
 ) -> List[Municipio]:
     try:
         db = duckdb.connect(IBGE_DB)
         cities_df = db.sql(
-            "SELECT cities.id AS id "
+            "SELECT cities.id AS geocodigo "
             "FROM cities "
             "JOIN microregions ON cities.microregion = microregions.id "
             "JOIN mesoregions ON microregions.mesoregion = mesoregions.name "
@@ -511,7 +510,10 @@ def get_cities_from_macroregion(
     finally:
         db.close()
 
-    return [Municipio(geocode) for geocode in list(cities_df["id"])]
+    if raw:
+        return list(cities_df["geocodigo"])
+
+    return [Municipio(geocode) for geocode in list(cities_df["geocodigo"])]
 
 
 def get_mesoregions_from_state(state: Estado) -> List[Mesorregiao]:
