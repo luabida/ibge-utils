@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "ibge-utils"
-version = "0.1.0"  # changed by semantic-release
+version = "1.0.0"  # changed by semantic-release
 description = "Utility Python package for IBGE information"
 authors = ["Luã Bida Vacaro <luabidaa@gmail.com>"]
 license = "GNU General Public License v3.0"
