@@ -22,7 +22,7 @@ class TestIBGEDB(unittest.TestCase):
             "macroregions",
             "mesoregions",
             "microregions",
-            "states"
+            "states",
         ]
         self.assertEqual(list(df["name"]).sort(), expected_tables.sort())
 
@@ -30,8 +30,8 @@ class TestIBGEDB(unittest.TestCase):
         macroregions_desc = self.db.sql("DESCRIBE macroregions").fetchall()
 
         expected_columns = {
-            'id': 'INTEGER',
-            'name': 'VARCHAR',
+            "id": "INTEGER",
+            "name": "VARCHAR",
         }
 
         columns = {row[0]: row[1] for row in macroregions_desc}
@@ -41,10 +41,10 @@ class TestIBGEDB(unittest.TestCase):
         states_desc = self.db.sql("DESCRIBE states").fetchall()
 
         expected_columns = {
-            'id': 'INTEGER',
-            'name': 'VARCHAR',
-            'macroregion': 'INTEGER',
-            'uf': 'VARCHAR',
+            "id": "INTEGER",
+            "name": "VARCHAR",
+            "macroregion": "INTEGER",
+            "uf": "VARCHAR",
         }
 
         columns = {row[0]: row[1] for row in states_desc}
@@ -54,9 +54,9 @@ class TestIBGEDB(unittest.TestCase):
         mesoregions_desc = self.db.sql("DESCRIBE mesoregions").fetchall()
 
         expected_columns = {
-            'name': 'VARCHAR',
-            'state': 'INTEGER',
-            'geographic_id': 'INTEGER',
+            "name": "VARCHAR",
+            "state": "INTEGER",
+            "geographic_id": "INTEGER",
         }
 
         columns = {row[0]: row[1] for row in mesoregions_desc}
@@ -66,10 +66,10 @@ class TestIBGEDB(unittest.TestCase):
         microregions_desc = self.db.sql("DESCRIBE microregions").fetchall()
 
         expected_columns = {
-            'id': 'INTEGER',
-            'name': 'VARCHAR',
-            'mesoregion': 'VARCHAR',
-            'geographic_id': 'INTEGER',
+            "id": "INTEGER",
+            "name": "VARCHAR",
+            "mesoregion": "VARCHAR",
+            "geographic_id": "INTEGER",
         }
 
         columns = {row[0]: row[1] for row in microregions_desc}
@@ -79,12 +79,12 @@ class TestIBGEDB(unittest.TestCase):
         cities_desc = self.db.sql("DESCRIBE cities").fetchall()
 
         expected_columns = {
-            'id': 'INTEGER',
-            'name': 'VARCHAR',
-            'microregion': 'INTEGER',
-            'latitude': 'FLOAT',
-            'longitude': 'FLOAT',
-            'timezone': 'VARCHAR'
+            "id": "INTEGER",
+            "name": "VARCHAR",
+            "microregion": "INTEGER",
+            "latitude": "FLOAT",
+            "longitude": "FLOAT",
+            "timezone": "VARCHAR",
         }
 
         columns = {row[0]: row[1] for row in cities_desc}
